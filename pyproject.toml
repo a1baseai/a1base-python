@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "a1base"
+version = "0.1.0"
+description = "Official Python client for the A1Base API"
+readme = "README.md"
+authors = [
+    { name = "A1Base Team", email = "support@a1base.com" }
+]
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Communications",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+keywords = ["a1base", "messaging", "whatsapp", "email", "communication"]
+dependencies = [
+    "httpx>=0.24.0",
+    "pydantic>=2.0.0"
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/a1base/a1base-python"
+Documentation = "https://docs.a1base.com"
+Repository = "https://github.com/a1base/a1base-python.git"
+"Bug Tracker" = "https://github.com/a1base/a1base-python/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/a1base"] 
