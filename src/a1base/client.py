@@ -149,7 +149,14 @@ class A1BaseClient:
             thread_id (str): ID of the thread to retrieve messages from
             
         Returns:
-            Dict[str, Any]: Recent messages response containing list of messages
+            Dict[str, Any]: Recent messages response containing:
+                - messages: List of message objects, each containing:
+                    - content: Message text
+                    - sender_number: Phone number of sender
+                    - timestamp: Message timestamp
+                    - message_id: Unique message identifier
+                - thread_id: ID of the thread
+                - participant_count: Number of participants
         """
         endpoint = f"/messages/threads/{account_id}/get-recent/{thread_id}"
         return self._make_request("GET", endpoint)
@@ -167,7 +174,12 @@ class A1BaseClient:
             thread_id (str): ID of the thread to retrieve
             
         Returns:
-            Dict[str, Any]: Thread details response
+            Dict[str, Any]: Thread details response containing:
+                - thread_id: Unique thread identifier
+                - chat_type: Type of chat (group/individual/broadcast)
+                - participants: List of participant phone numbers
+                - created_at: Thread creation timestamp
+                - last_message: Most recent message details
         """
         endpoint = f"/messages/threads/{account_id}/get-details/{thread_id}"
         return self._make_request("GET", endpoint)
@@ -183,7 +195,13 @@ class A1BaseClient:
             account_id (str): Your A1Base account ID
             
         Returns:
-            Dict[str, Any]: All threads response
+            Dict[str, Any]: All threads response containing:
+                - threads: List of thread objects, each containing:
+                    - thread_id: Unique thread identifier
+                    - chat_type: Type of chat
+                    - participant_count: Number of participants
+                    - last_message: Most recent message details
+                - total_count: Total number of threads
         """
         endpoint = f"/messages/threads/{account_id}/get-all"
         return self._make_request("GET", endpoint)
@@ -201,7 +219,13 @@ class A1BaseClient:
             phone_number (str): Phone number to filter threads by
             
         Returns:
-            Dict[str, Any]: Filtered threads response
+            Dict[str, Any]: Filtered threads response containing:
+                - threads: List of thread objects filtered by phone number
+                - total_count: Number of threads found
+                Each thread object contains:
+                    - thread_id: Unique thread identifier
+                    - chat_type: Type of chat
+                    - last_message: Most recent message details
         """
         endpoint = f"/messages/threads/{account_id}/get-all/{phone_number}"
         return self._make_request("GET", endpoint)
@@ -269,7 +293,23 @@ class A1BaseClient:
                 - attachment_uri (optional): URI of attachment
             
         Returns:
-            Dict[str, Any]: Email creation response
+            Dict[str, Any]: Email creation response containing:
+                - email_id: Unique email identifier
+                - status: Creation status
+                - created_at: Timestamp of creation
+                
+        Example:
+            >>> client = A1BaseClient(api_key="key", api_secret="secret")
+            >>> email = EmailRequest(
+            ...     sender_address="jane@a101.bot",
+            ...     recipient_address="john@a101.bot",
+            ...     subject="Hello",
+            ...     body="Message body",
+            ...     headers={"cc": ["jim@a101.bot"]}
+            ... )
+            >>> result = client.create_email("account123", email)
+            >>> print(result["status"])
+            'created'
         """
         endpoint = f"/emails/{account_id}/create-email"
         data = {
@@ -298,19 +338,41 @@ class A1BaseClient:
         
         Args:
             data (Dict[str, Any]): Webhook payload containing:
-                - external_thread_id: WhatsApp thread ID
-                - external_message_id: WhatsApp message ID
-                - chat_type: Type of chat (group/individual/broadcast)
-                - content: Message content
-                - sender_name: Name of sender
-                - sender_number: Phone number of sender
+                - external_thread_id: WhatsApp thread ID (e.g., "3456098@s.whatsapp")
+                - external_message_id: WhatsApp message ID (e.g., "2asd5678cfvgh123")
+                - chat_type: Type of chat ("group"/"individual"/"broadcast")
+                - content: Message body text
+                - sender_name: Display name of sender
+                - sender_number: Phone number of sender (e.g., "61421868490")
                 - participants: List of participant phone numbers
-                - a1_account_number: A1Base account number
-                - timestamp: Message timestamp
-                - secret_key: Webhook secret key
+                - a1_account_number: A1Base account phone number
+                - timestamp: Message timestamp in milliseconds
+                - secret_key: Webhook verification key
             
         Returns:
-            Dict[str, Any]: Webhook handling response
+            Dict[str, Any]: Webhook handling response containing:
+                - status: Processing status ("success"/"error")
+                - message_id: Internal message identifier
+                - thread_id: Internal thread identifier
+                - processed_at: Timestamp of processing
+                
+        Example:
+            >>> client = A1BaseClient(api_key="key", api_secret="secret")
+            >>> webhook_data = {
+            ...     "external_thread_id": "3456098@s.whatsapp",
+            ...     "external_message_id": "2asd5678cfvgh123",
+            ...     "chat_type": "individual",
+            ...     "content": "Hello!",
+            ...     "sender_name": "John",
+            ...     "sender_number": "61421868490",
+            ...     "participants": ["61421868490", "61433174782"],
+            ...     "a1_account_number": "61421868490",
+            ...     "timestamp": 1734486451000,
+            ...     "secret_key": "xxx"
+            ... }
+            >>> result = client.handle_whatsapp_incoming(webhook_data)
+            >>> print(result["status"])
+            'success'
         """
         endpoint = "/wa/whatsapp/incoming"
-        return self._make_request("POST", endpoint, data)        
+        return self._make_request("POST", endpoint, data)              
