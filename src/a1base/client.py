@@ -34,6 +34,9 @@ class A1BaseClient:
         api_secret: str,
         base_url: str = "https://api.a1base.com/v1"
     ) -> None:
+        if not api_key or not api_secret:
+            raise AuthenticationError("API key and secret are required")
+            
         self.base_url: str = base_url.rstrip('/')
         self.headers: Dict[str, str] = {
             'x-api-key': api_key,
@@ -270,4 +273,4 @@ class A1BaseClient:
         """
         endpoint = f"/messages/threads/{account_id}/get-all/{phone_number}"
         response = self._make_request("GET", endpoint)
-        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                                                  
+        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                                                        
