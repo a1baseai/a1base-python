@@ -62,10 +62,10 @@ class A1BaseClient:
             return response.json()
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise AuthenticationError("Invalid API credentials")
+                raise AuthenticationError("Invalid API credentials") from e
             elif e.response.status_code == 422:
-                raise ValidationError(f"Invalid request: {e.response.json()}")
-            raise A1BaseError(f"Request failed: {str(e)}")
+                raise ValidationError(f"Invalid request: {e.response.json()}") from e
+            raise A1BaseError(f"Request failed: {str(e)}") from e
 
     def send_individual_message(
         self, 
@@ -92,13 +92,18 @@ class A1BaseClient:
         if message.attachment_uri:
             data["attachment_uri"] = message.attachment_uri
             
-        response = self._make_request("POST", endpoint, data)
-        # Filter response to only include fields defined in our model
-        model_fields = {"to", "from", "body", "status"}
-        filtered_response = {k: v for k, v in response.items() if k in model_fields}
-        if "from" in filtered_response:
-            filtered_response["from_"] = filtered_response.pop("from")
-        return MessageResponse(**filtered_response)
+        try:
+            response = self._make_request("POST", endpoint, data)
+            # Filter response to only include fields defined in our model
+            model_fields = {"to", "from", "body", "status"}
+            filtered_response = {k: v for k, v in response.items() if k in model_fields}
+            if "from" in filtered_response:
+                filtered_response["from_"] = filtered_response.pop("from")
+            return MessageResponse(**filtered_response)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                raise AuthenticationError("Invalid API credentials") from e
+            raise
 
     def send_group_message(
         self, 
@@ -125,7 +130,7 @@ class A1BaseClient:
             data["attachment_uri"] = message.attachment_uri
             
         response = self._make_request("POST", endpoint, data)
-        return GroupMessageResponse(**response)
+        return GroupMessageResponse(**cast(JsonDict, response))
 
     def send_email(
         self,
@@ -168,7 +173,7 @@ class A1BaseClient:
             data["attachment_uri"] = email.attachment_uri
             
         response = self._make_request("POST", endpoint, data)
-        return EmailResponse(**response)
+        return EmailResponse(**cast(JsonDict, response))
         
     def get_message_details(
         self,
@@ -187,7 +192,7 @@ class A1BaseClient:
         """
         endpoint = f"/messages/individual/{account_id}/get-details/{message_id}"
         response = self._make_request("GET", endpoint)
-        return MessageResponse(**response)
+        return MessageResponse(**cast(JsonDict, response))
         
     def get_recent_messages(
         self,
@@ -206,7 +211,7 @@ class A1BaseClient:
         """
         endpoint = f"/messages/threads/{account_id}/get-recent/{thread_id}"
         response = self._make_request("GET", endpoint)
-        return [MessageResponse(**msg) for msg in response]
+        return [MessageResponse(**cast(JsonDict, msg)) for msg in response]
         
     def get_thread_details(
         self,
@@ -261,4 +266,4 @@ class A1BaseClient:
         """
         endpoint = f"/messages/threads/{account_id}/get-all/{phone_number}"
         response = self._make_request("GET", endpoint)
-        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                          
+        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                                
