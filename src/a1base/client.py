@@ -93,7 +93,12 @@ class A1BaseClient:
             data["attachment_uri"] = message.attachment_uri
             
         response = self._make_request("POST", endpoint, data)
-        return MessageResponse(**response)
+        # Filter response to only include fields defined in our model
+        model_fields = {"to", "from", "body", "status"}
+        filtered_response = {k: v for k, v in response.items() if k in model_fields}
+        if "from" in filtered_response:
+            filtered_response["from_"] = filtered_response.pop("from")
+        return MessageResponse(**filtered_response)
 
     def send_group_message(
         self, 
@@ -256,4 +261,4 @@ class A1BaseClient:
         """
         endpoint = f"/messages/threads/{account_id}/get-all/{phone_number}"
         response = self._make_request("GET", endpoint)
-        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                    
+        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                          
