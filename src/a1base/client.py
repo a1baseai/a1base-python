@@ -92,26 +92,22 @@ class A1BaseClient:
         if message.attachment_uri:
             data["attachment_uri"] = message.attachment_uri
             
-        try:
-            response = self._make_request("POST", endpoint, data)
-            # Filter response to only include fields defined in our model
-            model_fields = {"to", "from", "body", "status"}
-            filtered_response = {k: v for k, v in response.items() if k in model_fields}
-            if "from" in filtered_response:
-                filtered_response["from_"] = filtered_response.pop("from")
-            # Ensure all required fields are present
-            if not all(field in filtered_response for field in ["to", "from_", "body"]):
-                # If response is missing required fields, create a failure response
-                return MessageResponse(
-                    to=message.to,
-                    from_=message.from_,
-                    body=message.content,
-                    status="failed"
-                )
-            return MessageResponse(**filtered_response)
-        except AuthenticationError:
-            # Re-raise authentication errors without attempting to create response
-            raise
+        response = self._make_request("POST", endpoint, data)
+        # Filter response to only include fields defined in our model
+        model_fields = {"to", "from", "body", "status"}
+        filtered_response = {k: v for k, v in response.items() if k in model_fields}
+        if "from" in filtered_response:
+            filtered_response["from_"] = filtered_response.pop("from")
+        # Ensure all required fields are present
+        if not all(field in filtered_response for field in ["to", "from_", "body"]):
+            # If response is missing required fields, create a failure response
+            return MessageResponse(
+                to=message.to,
+                from_=message.from_,
+                body=message.content,
+                status="failed"
+            )
+        return MessageResponse(**filtered_response)
 
     def send_group_message(
         self, 
@@ -274,4 +270,4 @@ class A1BaseClient:
         """
         endpoint = f"/messages/threads/{account_id}/get-all/{phone_number}"
         response = self._make_request("GET", endpoint)
-        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                                               
+        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                                                  
