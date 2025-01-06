@@ -93,13 +93,25 @@ class A1BaseClient:
             data["attachment_uri"] = message.attachment_uri
             
         try:
-            response = self._make_request("POST", endpoint, data)
-            # Filter response to only include fields defined in our model
-            model_fields = {"to", "from", "body", "status"}
-            filtered_response = {k: v for k, v in response.items() if k in model_fields}
-            if "from" in filtered_response:
-                filtered_response["from_"] = filtered_response.pop("from")
-            return MessageResponse(**filtered_response)
+            try:
+                response = self._make_request("POST", endpoint, data)
+                # Filter response to only include fields defined in our model
+                model_fields = {"to", "from", "body", "status"}
+                filtered_response = {k: v for k, v in response.items() if k in model_fields}
+                if "from" in filtered_response:
+                    filtered_response["from_"] = filtered_response.pop("from")
+                return MessageResponse(**filtered_response)
+            except AuthenticationError:
+                # Re-raise authentication errors without attempting to create response object
+                raise
+            except Exception as e:
+                # For other errors, ensure we have a properly formatted error response
+                return MessageResponse(
+                    to=message.to,
+                    from_=message.from_,
+                    body=message.content,
+                    status="failed"
+                )
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
                 raise AuthenticationError("Invalid API credentials") from e
@@ -266,4 +278,4 @@ class A1BaseClient:
         """
         endpoint = f"/messages/threads/{account_id}/get-all/{phone_number}"
         response = self._make_request("GET", endpoint)
-        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                                
+        return [ThreadResponse(**cast(JsonDict, thread)) for thread in response]                                      
