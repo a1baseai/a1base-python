@@ -28,6 +28,7 @@ class MessageResponse:
     from_: str
     body: str
     status: MessageStatus
+    message: Optional[str] = None  # Some API responses include a message field
 
 @dataclass
 class GroupMessageResponse:
@@ -65,4 +66,4 @@ class EmailRequest:
     subject: str
     body: str
     headers: Optional[EmailHeaders] = None
-    attachment_uri: Optional[str] = None           
+    attachment_uri: Optional[str] = None              
