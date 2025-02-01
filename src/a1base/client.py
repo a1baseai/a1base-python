@@ -25,10 +25,13 @@ class A1BaseClient:
         api_secret: str,
         base_url: str = "https://api.a1base.com/v1"
     ):
+        if not base_url.lower().startswith('https://'):
+            raise ValueError('APIService requires HTTPS. Non-HTTPS URLs are not allowed for security reasons.')
+            
         self.base_url = base_url.rstrip('/')
         self.headers = {
-            'x-api-key': api_key,
-            'x-api-secret': api_secret,
+            'X-API-Key': api_key,
+            'X-API-Secret': api_secret,
             'Content-Type': 'application/json'
         }
         self.client = httpx.Client(timeout=30.0)
@@ -73,6 +76,12 @@ class A1BaseClient:
         Returns:
             MessageResponse: Response containing message status
         """
+        if not message.from_:
+            raise ValueError("[A1BaseAPI] Missing 'from' property: a valid 'from' number is required to send an individual message.")
+
+        if not message.content:
+            raise ValueError("[A1BaseAPI] Missing 'content' property: 'content' is required to send an individual message.")
+
         endpoint = f"/messages/individual/{account_id}/send"
         data = {
             "content": message.content,
@@ -82,9 +91,12 @@ class A1BaseClient:
         }
         if message.attachment_uri:
             data["attachment_uri"] = message.attachment_uri
-            
+
         response = self._make_request("POST", endpoint, data)
-        return MessageResponse(**response)
+        response_data = response['data']
+        # Convert 'from' to 'from_' to match MessageResponse model
+        response_data['from_'] = response_data.pop('from')
+        return MessageResponse(**response_data)
 
     def send_group_message(
         self, 
@@ -101,16 +113,23 @@ class A1BaseClient:
         Returns:
             GroupMessageResponse: Response containing message status
         """
-        endpoint = f"/messages/group/{account_id}/send"
+        if not message.from_:
+            raise ValueError("[A1BaseAPI] Missing 'from' property: a valid 'from' number is required to send a group message.")
+
+        if not message.content:
+            raise ValueError("[A1BaseAPI] Missing 'content' property: 'content' is required to send a group message.")
+
+        endpoint = f"/messages/threads/{account_id}/send"
         data = {
             "content": message.content,
             "from": message.from_,
+            "thread_id": message.thread_id,
             "service": message.service
         }
         if message.attachment_uri:
             data["attachment_uri"] = message.attachment_uri
             
         response = self._make_request("POST", endpoint, data)
-        return GroupMessageResponse(**response)
+        return GroupMessageResponse(**response['data'])
 
     # Additional methods following similar pattern... 

@@ -26,6 +26,7 @@ class MessageRequest:
 class GroupMessageRequest:
     content: str
     from_: str
+    thread_id: str
     service: str
     attachment_uri: Optional[str] = None
 
