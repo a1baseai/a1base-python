@@ -6,7 +6,6 @@ from .models import (
     MessageResponse,
     GroupMessageRequest,
     GroupMessageResponse,
-    EmailRequest
 )
 
 class A1BaseClient:

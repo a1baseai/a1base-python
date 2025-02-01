@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Literal
 
 @dataclass
 class MessageResponse:
@@ -31,10 +31,15 @@ class GroupMessageRequest:
     attachment_uri: Optional[str] = None
 
 @dataclass
-class EmailRequest:
-    sender_address: str
-    recipient_address: str
-    subject: str
-    body: str
-    headers: Optional[Dict[str, List[str]]] = None
-    attachment_uri: Optional[str] = None 
+class WhatsAppIncomingData:
+    thread_id: str
+    message_id: str
+    thread_type: Literal['individual', 'group', 'broadcast']
+    content: str
+    sender_number: str
+    sender_name: str
+    a1_account_id: str
+    timestamp: str
+    service: Literal['email', 'sms', 'whatsapp']
+    a1_account_number: Optional[str] = None
+    """ Deprecated: Use a1_account_id instead """
