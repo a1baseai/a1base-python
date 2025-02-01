@@ -119,7 +119,7 @@ class A1BaseClient:
         if not message.content:
             raise ValueError("[A1BaseAPI] Missing 'content' property: 'content' is required to send a group message.")
 
-        endpoint = f"/messages/threads/{account_id}/send"
+        endpoint = f"/messages/group/{account_id}/send"
         data = {
             "content": message.content,
             "from": message.from_,
