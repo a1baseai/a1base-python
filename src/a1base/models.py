@@ -43,3 +43,39 @@ class WhatsAppIncomingData:
     service: Literal['email', 'sms', 'whatsapp']
     a1_account_number: Optional[str] = None
     """ Deprecated: Use a1_account_id instead """
+
+@dataclass
+class Thread:
+    id: str
+    created_at: str
+    type: str
+    thread_name: Optional[str]
+    service_name: str
+    participants: List[str]
+    account_id: str
+    is_live: Optional[bool]
+
+@dataclass
+class MessageDetails:
+    id: str
+    thread_id: str
+    content: str
+    sender_number: str
+    sender_name: str
+    timestamp: str
+    updated_at: Optional[str] = None
+
+@dataclass
+class RecentMessages:
+    messages: List[MessageDetails]
+
+@dataclass
+class ThreadDetails:
+    thread_id: str
+    created_at: str
+    type: str
+    thread_name: Optional[str]
+    updated_at: Optional[str]
+    service_name: str
+    participants: List[str]
+    messages: List[str]

@@ -1,11 +1,15 @@
 import httpx
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from .exceptions import A1BaseError, AuthenticationError, ValidationError
 from .models import (
     MessageRequest, 
     MessageResponse,
     GroupMessageRequest,
     GroupMessageResponse,
+    Thread,
+    MessageDetails,
+    RecentMessages,
+    ThreadDetails,
 )
 
 class A1BaseClient:
@@ -131,4 +135,120 @@ class A1BaseClient:
         response = self._make_request("POST", endpoint, data)
         return GroupMessageResponse(**response['data'])
 
-    # Additional methods following similar pattern... 
+    def get_all_threads(
+        self,
+        account_id: str
+    ) -> List[Thread]:
+        """
+        Get all message threads for an account.
+        
+        Args:
+            account_id (str): Your A1Base account ID
+            
+        Returns:
+            List[Thread]: List of threads for the account
+        """
+        endpoint = f"/messages/threads/{account_id}/get-all"
+        response = self._make_request("GET", endpoint)
+        
+        threads = []
+        for thread_data in response['data']:
+            thread = Thread(**thread_data)
+            threads.append(thread)
+            
+        return threads
+
+    def get_message_details(
+        self,
+        account_id: str,
+        message_id: str
+    ) -> MessageDetails:
+        """
+        Get details for a specific message.
+        
+        Args:
+            account_id (str): Your A1Base account ID
+            message_id (str): ID of the message to fetch details for
+            
+        Returns:
+            MessageDetails: Detailed information about the message
+        """
+        endpoint = f"/messages/individual/{account_id}/get-details/{message_id}"
+        response = self._make_request("GET", endpoint)
+        
+        # The response data is nested under 'data'
+        response_data = response['data']
+        
+        return MessageDetails(**response_data)
+
+    def get_recent_messages(
+        self,
+        account_id: str,
+        thread_id: str
+    ) -> RecentMessages:
+        """
+        Get recent messages from a thread.
+        
+        Args:
+            account_id (str): Your A1Base account ID
+            thread_id (str): ID of the thread to fetch messages from
+            
+        Returns:
+            RecentMessages: Recent messages from the thread
+        """
+        endpoint = f"/messages/threads/{account_id}/get-recent/{thread_id}"
+        response = self._make_request("GET", endpoint)
+        
+        # The response contains a list of messages directly in data
+        messages = []
+        for msg in response['data']:
+            messages.append(MessageDetails(**msg))
+            
+        return RecentMessages(messages=messages)
+
+    def get_thread_details(
+        self,
+        account_id: str,
+        thread_id: str
+    ) -> ThreadDetails:
+        """
+        Get detailed thread information including messages.
+        
+        Args:
+            account_id (str): Your A1Base account ID
+            thread_id (str): ID of the thread to fetch details for
+            
+        Returns:
+            ThreadDetailed: Detailed information about the thread including messages
+        """
+        endpoint = f"/messages/threads/{account_id}/get-details/{thread_id}"
+        response = self._make_request("GET", endpoint)
+        
+        # The response data is nested under 'data'
+        response_data = response['data']
+        
+        return ThreadDetails(**response_data)
+
+    def get_all_threads_by_phone(
+        self,
+        account_id: str,
+        phone_number: str
+    ) -> List[Thread]:
+        """
+        Get all threads for a specific phone number.
+        
+        Args:
+            account_id (str): Your A1Base account ID
+            phone_number (str): Phone number to fetch threads for
+            
+        Returns:
+            List[Thread]: List of threads that include the phone number
+        """
+        endpoint = f"/messages/threads/{account_id}/get-all/{phone_number}"
+        response = self._make_request("GET", endpoint)
+        
+        threads = []
+        for thread_data in response['data']:
+            threads.append(Thread(**thread_data))
+            
+        return threads
